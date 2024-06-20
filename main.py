@@ -12,10 +12,10 @@ from uvicorn import run
 async def lifespan(app: FastAPI):
     INFO = colored('INFO', 'green')
 
-    await drop_tables()
-    print(f"{INFO}:\t  База очищена")
-    await create_tables()
-    print(f"{INFO}:\t  База готова к работе")
+    # await drop_tables()
+    # print(f"{INFO}:\t  База очищена")
+    # await create_tables()
+    # print(f"{INFO}:\t  База готова к работе")
     yield
     print(f"{INFO}:\t  Выключение")
 
