@@ -9,7 +9,7 @@ from uvicorn import run
 
 
 @asynccontextmanager
-async def lifespan():
+async def lifespan(app: FastAPI):
     INFO = colored('INFO', 'green')
 
     await drop_tables()
