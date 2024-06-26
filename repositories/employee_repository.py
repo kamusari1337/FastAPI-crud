@@ -2,6 +2,7 @@ from fastapi import HTTPException
 from sqlalchemy import select, delete
 
 from config.database import EmployeeOrm, SessionLocal, DepartmentOrm
+from config.logger import logger
 from schemas.employee_schemas import EmployeeBaseSchema, EmployeeIdSchema, EmployeeUpdateSchema, \
     EmployeeUpdateResultSchema, EmployeeAddSchema, EmployeeDeleteResultSchema, EmployeeExceptionSchema
 
@@ -23,9 +24,11 @@ class EmployeeRepository:
                 await session.flush()
                 await session.commit()
 
+                logger.info(f"Added employee with id {employee.id} and name {employee.name}")
                 return EmployeeBaseSchema.model_validate(employee)
             except Exception as e:
                 await session.rollback()
+                logger.error(e)
                 return HTTPException(status_code=400, detail=str(e))
 
     @classmethod
@@ -38,9 +41,11 @@ class EmployeeRepository:
                 employee = result.scalar_one_or_none()
                 if employee is None:
                     raise Exception("Employee does not exist")
+                logger.info(f"Selected employee with id {employee.id} and name {employee.name}")
                 return EmployeeBaseSchema.model_validate(employee)
             except Exception as e:
                 await session.rollback()
+                logger.error(e)
                 return HTTPException(status_code=400, detail=str(e))
 
     @classmethod
@@ -53,9 +58,11 @@ class EmployeeRepository:
 
                 if len(employee_schema) == 0:
                     return EmployeeExceptionSchema(message="No Employee exists")
+                logger.info(f"Selected all employees")
                 return employee_schema
             except Exception as e:
                 await session.rollback()
+                logger.error(e)
                 return HTTPException(status_code=400, detail=str(e))
 
     @classmethod
@@ -73,12 +80,12 @@ class EmployeeRepository:
                 old_employee.name = employee.new_name
                 old_employee.salary = employee.new_salary
 
-                department_check = await session.execute(select(DepartmentOrm).where(DepartmentOrm.id == employee.department_id))
+                department_check = await session.execute(
+                    select(DepartmentOrm).where(DepartmentOrm.id == employee.department_id))
                 if department_check.scalar_one_or_none() is None:
                     raise Exception("Department does not exist")
-
                 await session.commit()
-
+                logger.info(f"Updated employee with name {old_employee.name} to {employee.new_name}")
                 return EmployeeUpdateResultSchema(old_department_id=old_employee.department_id,
                                                   old_name=old_employee.name,
                                                   old_salary=old_employee.salary,
@@ -87,6 +94,7 @@ class EmployeeRepository:
                                                   new_salary=employee.new_salary)
             except Exception as e:
                 await session.rollback()
+                logger.error(e)
                 return HTTPException(status_code=400, detail=str(e))
 
     @classmethod
@@ -100,8 +108,9 @@ class EmployeeRepository:
                     raise Exception("Employee does not exist")
                 await session.execute(delete(EmployeeOrm).where(EmployeeOrm.id == employee.id))
                 await session.commit()
-
+                logger.info(f"Deleted employee with id {employee.id} and name {employee.name}")
                 return EmployeeDeleteResultSchema(id=employee.id)
             except Exception as e:
                 await session.rollback()
+                logger.error(e)
                 return HTTPException(status_code=400, detail=str(e))
