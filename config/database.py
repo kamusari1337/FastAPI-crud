@@ -1,11 +1,11 @@
 from sqlalchemy import ForeignKey
 from sqlalchemy.ext.asyncio import (AsyncAttrs, async_sessionmaker,
                                     create_async_engine)
-from sqlalchemy.orm import (DeclarativeBase, Mapped, backref, declarative_base,
+from sqlalchemy.orm import (DeclarativeBase, Mapped, backref,
                             mapped_column, relationship)
 
 DATABASE_URL = "sqlite+aiosqlite:///HR_department.db"
-DATABASE_ENGINE = create_async_engine(DATABASE_URL, echo=True)
+DATABASE_ENGINE = create_async_engine(DATABASE_URL)
 SessionLocal = async_sessionmaker(bind=DATABASE_ENGINE, expire_on_commit=False)
 
 
@@ -16,30 +16,32 @@ class Base(AsyncAttrs, DeclarativeBase):
 class DepartmentOrm(Base):
     __tablename__ = 'department'
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(unique=True)
-    amount: Mapped[int]
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, unique=True)
+    name: Mapped[str] = mapped_column(unique=True, nullable=False)
 
-    employees = relationship("EmployeeOrm", backref="department")
+    employees = relationship("EmployeeOrm", back_populates="department",
+                             cascade="all, delete, delete-orphan")
 
     def __repr__(self):
-        return f"Department: [ID: {self.id}, Name: {self.name}]"
+        return (f"ID: {self.id}, "
+                f"Name: {self.name}")
 
 
 class EmployeeOrm(Base):
     __tablename__ = 'employee'
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    department_id: Mapped[int] = mapped_column(ForeignKey('department.id'))
-    name: Mapped[str]
-    position: Mapped[str]
-    salary: Mapped[int]
-    hire_date: Mapped[str]
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, unique=True)
+    department_id: Mapped[int] = mapped_column(ForeignKey('department.id'), nullable=False)
+    name: Mapped[str] = mapped_column(nullable=False)
+    salary: Mapped[int] = mapped_column(nullable=False)
 
-    department = relationship("DepartmentOrm", backref=backref('employees'))
+    department = relationship("DepartmentOrm", back_populates="employees")
 
     def __repr__(self):
-        return f"Employee: [ID: {self.id}, Department ID: {self.department_id}, Name: {self.name}, Position: {self.position}, Salary: {self.salary}, Hire Date: {self.hire_date}]"
+        return (f"ID: {self.id}, "
+                f"Department ID: {self.department_id}, "
+                f"Name: {self.name}, "
+                f"Salary: {self.salary}")
 
 
 async def create_tables():

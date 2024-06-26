@@ -1,11 +1,46 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import Field, validator
+
+from schemas import BaseSchema
 
 
-class SEmployee(BaseModel):
-    department_id: int
+class EmployeeBaseSchema(BaseSchema):
+    id: int = Field(gt=0, description='Department ID')
+    department_id: int = Field(gt=0, description='Department ID')
     name: str
-    position: str = "manager" | "head"
-    salary: int
-    hire_date: str
+    salary: int = Field(gt=0, lt=500_000, description='Department ID')
 
-    model_config = ConfigDict(from_attributes=True)
+
+class EmployeeAddSchema(BaseSchema):
+    department_id: int = Field(gt=0, description='Department ID')
+    name: str
+    salary: int = Field(gt=0, lt=500_000, description='Department ID')
+
+
+class EmployeeIdSchema(BaseSchema):
+    id: int = Field(gt=0, description='Department ID')
+
+
+class EmployeeUpdateSchema(BaseSchema):
+    id: int = Field(gt=0, description='Department ID')
+    new_department_id: int = Field(gt=0, description='Department ID')
+    new_name: str
+    new_salary: int = Field(gt=0, lt=500_000, description='Department ID')
+
+
+class EmployeeUpdateResultSchema(BaseSchema):
+    old_department_id: int = Field(gt=0, description='Department ID')
+    old_name: str
+    old_salary: int = Field(gt=0, lt=500_000, description='Department ID')
+    new_department_id: int = Field(gt=0, description='Department ID')
+    new_name: str
+    new_salary: int = Field(gt=0, lt=500_000, description='Department ID')
+    message: str = "Employee name updated"
+
+
+class EmployeeDeleteResultSchema(BaseSchema):
+    id: int = Field(gt=0, description='Department ID')
+    message: str = "Employee deleted"
+
+
+class EmployeeExceptionSchema(BaseSchema):
+    message: str

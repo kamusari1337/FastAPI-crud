@@ -1,9 +1,8 @@
 from contextlib import asynccontextmanager
 
-from config.database import create_tables, drop_tables
 from fastapi import FastAPI
-from routers.department_router import router as department_api
-from routers.employee_router import router as employee_api
+from routers.employee_router import router as employee_router
+from routers.department_router import router as department_router
 from termcolor import colored
 from uvicorn import run
 
@@ -20,7 +19,9 @@ async def lifespan(app: FastAPI):
     print(f"{INFO}:\t  Выключение")
 
 
-app = FastAPI(title="Restful API", description="FastAPI restful api for department organization", lifespan=lifespan)
+app = FastAPI(title="Restful API",
+              description="FastAPI restful api for department organization",
+              lifespan=lifespan)
 
 
 @app.get("/")
@@ -28,8 +29,8 @@ def hello_world():
     return {"message": "Hello world!"}
 
 
-app.include_router(department_api)
-app.include_router(employee_api)
+app.include_router(employee_router)
+app.include_router(department_router)
 
 if __name__ == "__main__":
-    run("main:app", host="localhost", port=228, reload=True)
+    run("main:app", host="localhost", reload=True)
